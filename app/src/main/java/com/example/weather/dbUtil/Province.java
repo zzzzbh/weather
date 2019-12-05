@@ -12,23 +12,23 @@ public class Province extends DataSupport {
         return id;
     }
 
-    public String getName() {
-        return provinceName;
-    }
-
-    public int getCode() {
-        return provinceCode;
-    }
-
     public void setId(int id) {
         this.id = id;
     }
 
-    public void setName(String name) {
-        this.provinceName = name;
+    public String getProvinceName() {
+        return provinceName;
     }
 
-    public void setCode(int code) {
-        this.provinceCode = code;
+    public void setProvinceName(String provinceName) {
+        this.provinceName = provinceName;
+    }
+
+    public int getProvinceCode() {
+        return provinceCode;
+    }
+
+    public void setProvinceCode(int provinceCode) {
+        this.provinceCode = provinceCode;
     }
 }
