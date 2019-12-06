@@ -6,7 +6,7 @@
     android:layout_margin="15sp">
 
     <TextView
-        android:id="@+id/degree_text"
+        android:id="@+id/temperature_text"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="end"
