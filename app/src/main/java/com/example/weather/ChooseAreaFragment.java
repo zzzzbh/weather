@@ -26,7 +26,6 @@ import com.example.weather.dbUtil.Province;
 import org.litepal.crud.DataSupport;
 
 import java.io.IOException;
-import java.security.ProtectionDomain;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -47,7 +46,7 @@ public class ChooseAreaFragment extends Fragment {
     private List<Province> provinceList;
     private List<City> cityList;
     private List<County> countyList;
-    private Province selectedPronvince;
+    private Province selectedProvince;
     private City selectedCity;
     private County selectedCounty;
     private int currentLevel;
@@ -71,17 +70,24 @@ public class ChooseAreaFragment extends Fragment {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int position, long l) {
                 if(currentLevel ==LEVEL_PROVINCE){
-                    selectedPronvince =provinceList.get(position);
+                    selectedProvince =provinceList.get(position);
                     queryCities();
                 }else if(currentLevel ==LEVEL_CITY){
                     selectedCity =cityList.get(position);
                     queryCounties();
                 }else if(currentLevel==LEVEL_COUNTY){
                     String weatherID =countyList.get(position).getWeatherID();
-                    Intent intent =new Intent(getActivity(),WeatherActivity.class);
-                    intent.putExtra("weather_id",weatherID);
-                    startActivity(intent);
-                    getActivity().finish();
+                    if(getActivity() instanceof MainActivity){      //在碎片中调用getActivity()用来判断碎片位于哪个Activity内，如果在MainActivity便跳转，如果在WeatherActivity便直接更新页面
+                        Intent intent =new Intent(getActivity(),WeatherActivity.class);
+                        intent.putExtra("weather_id",weatherID);
+                        startActivity(intent);
+                        getActivity().finish();
+                    }else if(getActivity() instanceof WeatherActivity){
+                        WeatherActivity activity = (WeatherActivity) getActivity();
+                        activity.drawerLayout.closeDrawers();
+                        activity.swipeRefreshLayout.setRefreshing(true);
+                        activity.requestWeather(weatherID);
+                    }
                 }
             }
         });
@@ -118,9 +124,9 @@ public class ChooseAreaFragment extends Fragment {
     }
 
     private void queryCities(){
-        titletext.setText(selectedPronvince.getProvinceName());
+        titletext.setText(selectedProvince.getProvinceName());
         back.setVisibility(View.VISIBLE);
-        cityList =DataSupport.where("provinceid = ?",String.valueOf(selectedPronvince)).find(City.class);
+        cityList =DataSupport.where("provinceid = ?",String.valueOf(selectedProvince)).find(City.class);
         if(cityList.size()>0){
             list.clear();
             for(City city:cityList){
@@ -130,7 +136,7 @@ public class ChooseAreaFragment extends Fragment {
             listView.setSelection(0);
             currentLevel =LEVEL_CITY;
         }else{
-            int provinceCode =selectedPronvince.getProvinceCode();
+            int provinceCode =selectedProvince.getProvinceCode();
             String address ="http://guolin.tech/api/china/"+provinceCode;
             queryFromServer(address,"city");
         }
@@ -149,7 +155,7 @@ public class ChooseAreaFragment extends Fragment {
             listView.setSelection(0);
             currentLevel =LEVEL_COUNTY;
         }else{
-            int provinceCode =selectedPronvince.getProvinceCode();
+            int provinceCode =selectedProvince.getProvinceCode();
             int cityCode =selectedCity.getCityCode();
             String address ="http://guolin.tech/api/china/"+provinceCode+"/"+cityCode;
             queryFromServer(address,"county");
@@ -180,7 +186,7 @@ public class ChooseAreaFragment extends Fragment {
                     if("province".equals(type)){
                         result = Utility.handleProvinceResponse(responseText);
                     }else if("city".equals(type)){
-                        int provinceID =selectedPronvince.getId();
+                        int provinceID =selectedProvince.getId();
                         result =Utility.handleCityResponse(responseText,provinceID);
                     }else if("county".equals(type)){
                         int cityID =selectedCity.getId();
